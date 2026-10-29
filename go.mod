@@ -1,3 +1,3 @@
-module worktee-manager
+module worktree-manager
 
 go 1.27.0
