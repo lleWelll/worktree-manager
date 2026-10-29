@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"worktree-manager/internal/config"
+	"github.com/lleWelll/worktree-manager/internal/config"
 )
 
 func TestOpenFindsMainFromAnywhere(t *testing.T) {

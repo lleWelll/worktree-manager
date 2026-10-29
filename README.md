@@ -9,7 +9,7 @@ Inspired by [claude-worktree](https://github.com/bucket-robotics/claude-worktree
 ## Install
 
 ```sh
-go install ./cmd/gwm
+go install github.com/lleWelll/worktree-manager/cmd/gwm@latest
 gwm install   # add the shell integration to ~/.zshrc or ~/.bash_profile
 ```
 

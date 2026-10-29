@@ -9,10 +9,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"worktree-manager/internal/config"
-	"worktree-manager/internal/project"
-	"worktree-manager/internal/shell"
-	"worktree-manager/internal/tui"
+	"github.com/lleWelll/worktree-manager/internal/config"
+	"github.com/lleWelll/worktree-manager/internal/project"
+	"github.com/lleWelll/worktree-manager/internal/shell"
+	"github.com/lleWelll/worktree-manager/internal/tui"
 )
 
 const usage = `Usage:

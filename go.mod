@@ -1,4 +1,4 @@
-module worktree-manager
+module github.com/lleWelll/worktree-manager
 
 go 1.27.0
 

@@ -10,7 +10,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"worktree-manager/internal/project"
+	"github.com/lleWelll/worktree-manager/internal/project"
 )
 
 // Project is the part of project.Project the TUI drives.

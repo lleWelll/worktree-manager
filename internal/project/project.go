@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"worktree-manager/internal/config"
-	"worktree-manager/internal/git"
+	"github.com/lleWelll/worktree-manager/internal/config"
+	"github.com/lleWelll/worktree-manager/internal/git"
 )
 
 var (

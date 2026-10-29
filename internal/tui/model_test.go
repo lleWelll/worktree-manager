@@ -8,8 +8,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"worktree-manager/internal/git"
-	"worktree-manager/internal/project"
+	"github.com/lleWelll/worktree-manager/internal/git"
+	"github.com/lleWelll/worktree-manager/internal/project"
 )
 
 type fakeProject struct {
