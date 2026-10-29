@@ -28,7 +28,8 @@ type Error struct {
 
 func (e *Error) Error() string {
 	if e.Stderr != "" {
-		return e.Stderr
+		msg := strings.TrimPrefix(e.Stderr, "fatal: ")
+		return strings.TrimPrefix(msg, "error: ")
 	}
 	return fmt.Sprintf("git %s: %v", strings.Join(e.Args, " "), e.Err)
 }

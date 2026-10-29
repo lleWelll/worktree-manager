@@ -20,6 +20,7 @@ var (
 	ErrBareRepo     = errors.New("bare repositories are not supported")
 	ErrMainWorktree = errors.New("the main worktree cannot be deleted")
 	ErrLocked       = errors.New("worktree is locked; run `git worktree unlock <path>` first")
+	ErrDirty        = errors.New("worktree has uncommitted changes")
 )
 
 // BranchInUseError reports a branch already checked out in another Worktree.
@@ -276,6 +277,9 @@ func (p *Project) Delete(wt Worktree, force bool) (warning string, err error) {
 		_, err = git.Run(p.MainPath, "worktree", "remove", "--force", wt.Path)
 	} else {
 		_, err = git.Run(p.MainPath, "worktree", "remove", wt.Path)
+		if err != nil && strings.Contains(err.Error(), "modified or untracked files") {
+			err = ErrDirty
+		}
 	}
 	if err != nil || wt.Branch == "" {
 		return "", err

@@ -61,7 +61,7 @@ func (m *Model) View() string {
 	case modeConfirm:
 		below = append(below, modalStyle.Width(min(width-2, 70)).Render(m.confirm.prompt+dimStyle.Render("  [y/n]")))
 	}
-	below = append(below, dimStyle.Render(strings.Repeat("─", width)), m.messageView(), m.keysView())
+	below = append(below, dimStyle.Render(strings.Repeat("─", width)), m.messageView(width), m.keysView())
 	footer := strings.Join(below, "\n")
 
 	maxRows := 0
@@ -180,16 +180,17 @@ func (m *Model) createView(width int) string {
 	return modalStyle.Width(min(width-2, 70)).Render(strings.Join(lines, "\n"))
 }
 
-func (m *Model) messageView() string {
+func (m *Model) messageView(width int) string {
+	msg := truncate(strings.ReplaceAll(m.message, "\n", " "), width-1)
 	switch {
-	case m.message == "":
+	case msg == "":
 		return ""
 	case m.isError:
-		return " " + errorStyle.Render(m.message)
-	case strings.HasPrefix(m.message, "Warning:"):
-		return " " + warningStyle.Render(m.message)
+		return " " + errorStyle.Render(msg)
+	case strings.HasPrefix(msg, "Warning:"):
+		return " " + warningStyle.Render(msg)
 	}
-	return " " + infoStyle.Render(m.message)
+	return " " + infoStyle.Render(msg)
 }
 
 func (m *Model) keysView() string {

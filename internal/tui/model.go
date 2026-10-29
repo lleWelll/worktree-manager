@@ -2,7 +2,9 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -156,12 +158,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.setError(msg.err)
 			return m, nil
 		}
-		m.setInfo("Created worktree " + msg.plan.Path)
+		m.setInfo("Created worktree " + filepath.Base(msg.plan.Path))
 		m.keepPath = msg.plan.Path
 		return m, m.load()
 	case deletedMsg:
 		m.busy = false
 		switch {
+		case errors.Is(msg.err, project.ErrDirty):
+			m.setError(fmt.Errorf("%w; press D to force delete", msg.err))
+			return m, nil
 		case msg.err != nil:
 			m.setError(msg.err)
 			return m, nil

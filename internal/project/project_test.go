@@ -256,8 +256,8 @@ func TestSafeDeleteDirtyFails(t *testing.T) {
 	p := open(t, newRepo(t))
 	createBranch(t, p, "dirty")
 	writeFile(t, filepath.Join(p.WorktreesRoot, "dirty", "new.txt"))
-	if _, err := p.Delete(find(t, p, "dirty"), false); err == nil {
-		t.Fatal("dirty worktree deleted")
+	if _, err := p.Delete(find(t, p, "dirty"), false); !errors.Is(err, ErrDirty) {
+		t.Fatalf("err = %v, want ErrDirty", err)
 	}
 	find(t, p, "dirty")
 }
