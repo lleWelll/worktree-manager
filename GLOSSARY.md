@@ -32,11 +32,26 @@ _Avoid_: Worktree name, alias
 The directory under which new Linked worktrees are created for a Project.
 _Avoid_: Worktrees dir, base dir
 
+**Missing worktree**:
+A Linked worktree git still knows about whose directory no longer exists.
+_Avoid_: Prunable, stale
+
+**Locked worktree**:
+A Linked worktree that git protects from removal until it is unlocked.
+
+**Start point**:
+The commit a newly created branch begins from: the HEAD of the Main worktree.
+_Avoid_: Base, base branch
+
 ### Actions
 
 **Switch**:
 Changing the user's shell working directory to a chosen Worktree.
 _Avoid_: Resume, enter, checkout
+
+**Shell integration**:
+The shell function, installed in the user's shell startup file, that makes a Switch change the directory of the shell `gwm` was launched from.
+_Avoid_: Wrapper, hook
 
 **Safe delete**:
 Removing a Linked worktree and its branch only if no uncommitted or unmerged work would be lost.
