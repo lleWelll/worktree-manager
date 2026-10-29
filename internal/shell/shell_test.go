@@ -47,15 +47,35 @@ func TestScriptSwitchesDirectory(t *testing.T) {
 
 func TestRCFile(t *testing.T) {
 	t.Setenv("ZDOTDIR", "")
-	cases := map[string]string{"zsh": "/h/.zshrc", "bash": "/h/.bash_profile"}
-	for sh, want := range cases {
-		if got, err := RCFile(sh, "/h"); err != nil || got != want {
-			t.Errorf("%s: got %q, %v", sh, got, err)
+	cases := []struct{ sh, goos, want string }{
+		{"zsh", "darwin", "/h/.zshrc"},
+		{"zsh", "linux", "/h/.zshrc"},
+		{"bash", "darwin", "/h/.bash_profile"},
+		{"bash", "windows", "/h/.bash_profile"},
+		{"bash", "linux", "/h/.bashrc"},
+	}
+	for _, c := range cases {
+		if got, err := rcFile(c.sh, "/h", c.goos); err != nil || got != c.want {
+			t.Errorf("%s on %s: got %q, %v", c.sh, c.goos, got, err)
 		}
 	}
 	t.Setenv("ZDOTDIR", "/z")
-	if got, _ := RCFile("zsh", "/h"); got != "/z/.zshrc" {
+	if got, _ := rcFile("zsh", "/h", "linux"); got != "/z/.zshrc" {
 		t.Errorf("ZDOTDIR: got %q", got)
+	}
+}
+
+func TestDetect(t *testing.T) {
+	for shellEnv, want := range map[string]string{
+		"/bin/zsh":          "zsh",
+		"/usr/bin/bash":     "bash",
+		"/usr/bin/bash.exe": "bash",
+		"":                  ".",
+	} {
+		t.Setenv("SHELL", shellEnv)
+		if got := Detect(); got != want {
+			t.Errorf("SHELL=%q: got %q, want %q", shellEnv, got, want)
+		}
 	}
 }
 

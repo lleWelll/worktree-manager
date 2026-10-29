@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -45,14 +46,20 @@ func Script(sh string) (string, error) {
 	return function, nil
 }
 
-// Detect returns the user's login shell name from $SHELL.
+// Detect returns the user's login shell name from $SHELL. Git Bash passes $SHELL
+// to native programs as a Windows path ending in bash.exe.
 func Detect() string {
-	return filepath.Base(os.Getenv("SHELL"))
+	return strings.TrimSuffix(filepath.Base(os.Getenv("SHELL")), ".exe")
 }
 
 // RCFile returns the startup file the Shell integration is installed into.
-// bash uses .bash_profile because macOS terminals start login shells.
 func RCFile(sh, home string) (string, error) {
+	return rcFile(sh, home, runtime.GOOS)
+}
+
+// rcFile is RCFile for the given GOOS. bash uses .bash_profile on macOS and in
+// Git Bash on Windows, whose terminals start login shells, and .bashrc elsewhere.
+func rcFile(sh, home, goos string) (string, error) {
 	switch sh {
 	case "zsh":
 		if dir := os.Getenv("ZDOTDIR"); dir != "" {
@@ -60,7 +67,10 @@ func RCFile(sh, home string) (string, error) {
 		}
 		return filepath.Join(home, ".zshrc"), nil
 	case "bash":
-		return filepath.Join(home, ".bash_profile"), nil
+		if goos == "darwin" || goos == "windows" {
+			return filepath.Join(home, ".bash_profile"), nil
+		}
+		return filepath.Join(home, ".bashrc"), nil
 	}
 	return "", fmt.Errorf("unsupported shell %q (supported: zsh, bash)", sh)
 }

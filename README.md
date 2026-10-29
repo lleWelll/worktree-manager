@@ -10,7 +10,7 @@ Inspired by [claude-worktree](https://github.com/bucket-robotics/claude-worktree
 
 ```sh
 go install github.com/lleWelll/worktree-manager/cmd/gwm@latest
-gwm install   # add the shell integration to ~/.zshrc or ~/.bash_profile
+gwm install   # add the shell integration to your zsh or bash startup file
 ```
 
 The shell integration lets `gwm` change the directory of your current shell when you switch worktrees. Without it, `gwm` prints the target path instead.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -117,6 +118,7 @@ func install() error {
 		fmt.Printf("Shell integration is already installed in %s.\n", rc)
 		return nil
 	}
-	fmt.Printf("Added shell integration to %s. Restart your shell or run: source %s\n", rc, rc)
+	// Forward slashes so the source command also pastes into Git Bash.
+	fmt.Printf("Added shell integration to %s. Restart your shell or run: source %s\n", rc, filepath.ToSlash(rc))
 	return nil
 }
