@@ -4,6 +4,8 @@ A terminal UI for listing, creating, switching between and deleting the git work
 
 Inspired by [claude-worktree](https://github.com/bucket-robotics/claude-worktree).
 
+![demo](demo/demo.gif)
+
 ## Install
 
 ```sh
@@ -29,7 +31,11 @@ Run `gwm` inside a git repository.
 
 ## Configuration
 
-Optional, at `$XDG_CONFIG_HOME/worktree-manager/config.json` (defaults to `~/.config/...`):
+`gwm` lists worktrees with `git worktree list`. New worktrees are created in `.worktrees/<name>` inside the repository's main worktree, where `<name>` defaults to the branch name with `/` replaced by `-`. 
+
+You may want to add `.worktrees` to `.gitignore`.
+
+The config file is optional, at `$XDG_CONFIG_HOME/worktree-manager/config.json` (defaults to `~/.config/...`):
 
 ```json
 {
