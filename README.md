@@ -29,6 +29,8 @@ Run `gwm` inside a git repository.
 | `r`     | refresh      |
 | `q`     | quit         |
 
+When creating a worktree, the Branch field shows matching local and remote-tracking branches as you type (up to five matches). Remote suggestions use locally cached refs; run `git fetch` to refresh them.
+
 ## Configuration
 
 `gwm` lists worktrees with `git worktree list`. New worktrees are created in `.worktrees/<name>` inside the repository's main worktree, where `<name>` defaults to the branch name with `/` replaced by `-`. 

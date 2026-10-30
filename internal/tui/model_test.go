@@ -13,12 +13,14 @@ import (
 )
 
 type fakeProject struct {
-	list    []project.Worktree
-	plan    project.CreatePlan
-	planErr error
-	created []project.CreatePlan
-	deleted []string
-	forced  []bool
+	branches    []project.Branch
+	branchesErr error
+	list        []project.Worktree
+	plan        project.CreatePlan
+	planErr     error
+	created     []project.CreatePlan
+	deleted     []string
+	forced      []bool
 }
 
 func (f *fakeProject) Worktrees() ([]project.Worktree, error) { return f.list, nil }
@@ -253,5 +255,40 @@ func TestFilterEscClears(t *testing.T) {
 	press(m, "/", "z", "z", "esc")
 	if m.mode != modeList || m.filter != "" || len(m.visible()) != 4 {
 		t.Fatalf("mode=%v filter=%q visible=%d", m.mode, m.filter, len(m.visible()))
+	}
+}
+
+func (f *fakeProject) Branches() ([]project.Branch, error) { return f.branches, f.branchesErr }
+
+func TestCreateBranchSuggestions(t *testing.T) {
+	f := newFake()
+	f.branches = []project.Branch{{Name: "feat/local"}, {Name: "feat/remote", Remote: "origin"}, {Name: "other"}}
+	m := start(t, f)
+	press(m, "n", "FEAT/")
+	view := m.View()
+	for _, want := range []string{"feat/local", "local", "origin/feat/remote", "remote"} {
+		if !strings.Contains(view, want) {
+			t.Errorf("missing %q in %s", want, view)
+		}
+	}
+	if strings.Contains(view, "other") {
+		t.Errorf("unmatched suggestion in %s", view)
+	}
+	press(m, "tab")
+	if strings.Contains(m.View(), "origin/feat/remote") {
+		t.Fatal("suggestions visible outside branch field")
+	}
+}
+
+func TestBranchSuggestionFailureKeepsFormUsable(t *testing.T) {
+	f := newFake()
+	f.branchesErr = errors.New("cannot list refs")
+	m := start(t, f)
+	press(m, "n", "new-branch")
+	if m.mode != modeCreate || string(m.inputs[0]) != "new-branch" {
+		t.Fatal("form unusable")
+	}
+	if !strings.Contains(m.View(), "cannot list refs") {
+		t.Fatal("missing load error")
 	}
 }

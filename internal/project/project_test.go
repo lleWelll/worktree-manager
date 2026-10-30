@@ -458,3 +458,21 @@ func mustRemoveAll(t *testing.T, dir string) {
 		t.Fatal(err)
 	}
 }
+
+func TestBranchesIncludesLocalAndRemoteButNotSymbolicHEAD(t *testing.T) {
+	main := newRepo(t)
+	gitIn(t, main, "branch", "feat/local")
+	gitIn(t, main, "update-ref", "refs/remotes/origin/feat/remote", "HEAD")
+	gitIn(t, main, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/feat/remote")
+	branches, err := open(t, main).Branches()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, b := range branches {
+		got = append(got, b.Remote+":"+b.Name)
+	}
+	if strings.Join(got, ",") != ":feat/local,:main,origin:feat/remote" {
+		t.Fatalf("branches=%v", got)
+	}
+}

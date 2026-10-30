@@ -322,3 +322,34 @@ func realpath(path string) string {
 	}
 	return path
 }
+
+// Branch is a local branch or a cached remote-tracking branch.
+// Remote is empty for local branches.
+type Branch struct {
+	Name   string
+	Remote string
+}
+
+// Branches lists local and remote-tracking branches without contacting remotes.
+func (p *Project) Branches() ([]Branch, error) {
+	out, err := git.Run(p.MainPath, "for-each-ref", "--sort=refname", "--format=%(refname)%09%(symref)", "refs/heads/", "refs/remotes/")
+	if err != nil {
+		return nil, err
+	}
+	var branches []Branch
+	for line := range strings.SplitSeq(out, "\n") {
+		ref, symbolic, _ := strings.Cut(line, "\t")
+		if ref == "" || symbolic != "" {
+			continue
+		}
+		if name, ok := strings.CutPrefix(ref, "refs/heads/"); ok {
+			branches = append(branches, Branch{Name: name})
+		} else if ref, ok := strings.CutPrefix(ref, "refs/remotes/"); ok {
+			remote, name, ok := strings.Cut(ref, "/")
+			if ok {
+				branches = append(branches, Branch{Name: name, Remote: remote})
+			}
+		}
+	}
+	return branches, nil
+}

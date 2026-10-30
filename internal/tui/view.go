@@ -176,6 +176,24 @@ func (m *Model) createView(width int) string {
 			}
 		}
 		lines = append(lines, label+value)
+		if i == fieldBranch && m.focus == fieldBranch {
+			if m.branchError != nil {
+				lines = append(lines, dimStyle.Render("  Branch suggestions unavailable: "+m.branchError.Error()))
+			} else {
+				suggestions := m.branchSuggestions()
+				const limit = 5
+				for _, branch := range suggestions[:min(len(suggestions), limit)] {
+					name, source := branch.Name, "local"
+					if branch.Remote != "" {
+						name, source = branch.Remote+"/"+name, "remote"
+					}
+					lines = append(lines, dimStyle.Render("  "+truncate(name+" ["+source+"]", max(min(width-8, 64), 1))))
+				}
+				if len(suggestions) > limit {
+					lines = append(lines, dimStyle.Render(fmt.Sprintf("  … %d more; keep typing to narrow", len(suggestions)-limit)))
+				}
+			}
+		}
 	}
 	return modalStyle.Width(min(width-2, 70)).Render(strings.Join(lines, "\n"))
 }

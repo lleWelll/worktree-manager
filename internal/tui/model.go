@@ -16,6 +16,7 @@ import (
 // Project is the part of project.Project the TUI drives.
 type Project interface {
 	Worktrees() ([]project.Worktree, error)
+	Branches() ([]project.Branch, error)
 	PlanCreate(branch, dirName string) (project.CreatePlan, error)
 	Create(plan project.CreatePlan) error
 	Delete(wt project.Worktree, force bool) (warning string, err error)
@@ -63,6 +64,10 @@ type Model struct {
 	keepPath   string // select this Worktree after the next reload
 	generation int    // discards status results from older reloads
 
+	branches    []project.Branch
+	branchLoad  int
+	branchError error
+
 	mode    mode
 	filter  string
 	inputs  [2][]rune
@@ -96,6 +101,12 @@ type statusMsg struct {
 	path       string
 	dirty      bool
 	lastCommit time.Time
+	err        error
+}
+
+type branchesMsg struct {
+	generation int
+	branches   []project.Branch
 	err        error
 }
 
@@ -147,6 +158,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.rows[i].loaded, m.rows[i].dirty, m.rows[i].lastCommit = true, msg.dirty, msg.lastCommit
 				}
 			}
+		}
+		return m, nil
+	case branchesMsg:
+		if msg.generation == m.branchLoad {
+			m.branches, m.branchError = msg.branches, msg.err
 		}
 		return m, nil
 	case plannedMsg:
@@ -275,7 +291,14 @@ func (m *Model) handleListKey(msg tea.KeyMsg) tea.Cmd {
 		m.mode = modeCreate
 		m.inputs = [2][]rune{}
 		m.focus = fieldBranch
+		m.branches, m.branchError = nil, nil
+		m.branchLoad++
+		generation := m.branchLoad
 		m.clearMessage()
+		return func() tea.Msg {
+			branches, err := m.proj.Branches()
+			return branchesMsg{generation, branches, err}
+		}
 	case "/":
 		m.mode = modeFilter
 	case "r":
@@ -460,4 +483,20 @@ func dropLast(s string) string {
 		return s
 	}
 	return string(r[:len(r)-1])
+}
+
+// branchSuggestions filters the cached refs while the user types.
+func (m *Model) branchSuggestions() []project.Branch {
+	query := strings.ToLower(strings.TrimSpace(string(m.inputs[fieldBranch])))
+	var result []project.Branch
+	for _, branch := range m.branches {
+		name := branch.Name
+		if branch.Remote != "" {
+			name = branch.Remote + "/" + name
+		}
+		if strings.Contains(strings.ToLower(name), query) {
+			result = append(result, branch)
+		}
+	}
+	return result
 }
