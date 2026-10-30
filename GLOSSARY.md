@@ -54,10 +54,10 @@ The shell function, installed in the user's shell startup file, that makes a Swi
 _Avoid_: Wrapper, hook
 
 **Safe delete**:
-Removing a Linked worktree and its branch only if no uncommitted or unmerged work would be lost.
+Removing a Linked worktree only if no uncommitted changes would be lost. Its local branch is preserved.
 
 **Force delete**:
-Removing a Linked worktree and its branch regardless of uncommitted or unmerged work.
+Removing a Linked worktree even when it has uncommitted changes. Its local branch is preserved.
 
 **Dirty**:
 A Worktree with uncommitted changes (modified, staged or untracked files).

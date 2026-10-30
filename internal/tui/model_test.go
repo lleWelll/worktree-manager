@@ -292,3 +292,16 @@ func TestBranchSuggestionFailureKeepsFormUsable(t *testing.T) {
 		t.Fatal("missing load error")
 	}
 }
+
+func TestDeletePromptsOnlyDescribeWorktreeRemoval(t *testing.T) {
+	for _, key := range []string{"d", "D"} {
+		m := start(t, newFake())
+		press(m, key)
+		if m.mode != modeConfirm {
+			t.Fatal("missing confirmation")
+		}
+		if strings.Contains(m.confirm.prompt, "branch") || strings.Contains(m.confirm.prompt, "unmerged") {
+			t.Fatalf("misleading prompt: %s", m.confirm.prompt)
+		}
+	}
+}

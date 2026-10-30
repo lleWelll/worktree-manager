@@ -261,8 +261,8 @@ func (p *Project) ensureExcluded() error {
 	return f.Close()
 }
 
-// Delete removes a Linked worktree and its branch. A Safe delete (force=false)
-// refuses to lose uncommitted changes and keeps an unmerged branch, returning a warning.
+// Delete removes a Linked worktree, preserving its local branch.
+// A Safe delete (force=false) refuses to lose uncommitted changes.
 func (p *Project) Delete(wt Worktree, force bool) (warning string, err error) {
 	switch {
 	case wt.Main:
@@ -281,20 +281,7 @@ func (p *Project) Delete(wt Worktree, force bool) (warning string, err error) {
 			err = ErrDirty
 		}
 	}
-	if err != nil || wt.Branch == "" {
-		return "", err
-	}
-
-	if force {
-		if _, err := git.Run(p.MainPath, "branch", "-D", wt.Branch); err != nil {
-			return "", fmt.Errorf("worktree removed, but deleting branch %q failed: %w", wt.Branch, err)
-		}
-		return "", nil
-	}
-	if _, err := git.Run(p.MainPath, "branch", "-d", wt.Branch); err != nil {
-		return fmt.Sprintf("worktree removed, branch %q kept: not fully merged", wt.Branch), nil
-	}
-	return "", nil
+	return "", err
 }
 
 // Dirty reports whether the Worktree at path has uncommitted changes.

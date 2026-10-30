@@ -397,12 +397,9 @@ func (m *Model) askDelete(force bool) {
 		return
 	}
 	what := "worktree " + wt.Name
-	if wt.Branch != "" {
-		what += fmt.Sprintf(" and branch %q", wt.Branch)
-	}
 	prompt := "Delete " + what + "?"
 	if force {
-		prompt = "Force delete " + what + "? Uncommitted changes and unmerged commits will be lost."
+		prompt = "Force delete " + what + "? Uncommitted changes will be lost."
 	}
 	m.clearMessage()
 	m.ask(prompt, func() tea.Msg {

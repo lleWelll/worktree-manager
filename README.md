@@ -31,6 +31,8 @@ Run `gwm` inside a git repository.
 
 When creating a worktree, the Branch field shows matching local and remote-tracking branches as you type (up to five matches). Remote suggestions use locally cached refs; run `git fetch` to refresh them.
 
+Deleting a worktree (`d` or `D`) preserves its local branch. Force deletion (`D`) discards uncommitted changes in the worktree.
+
 ## Configuration
 
 `gwm` lists worktrees with `git worktree list`. New worktrees are created in `.worktrees/<name>` inside the repository's main worktree, where `<name>` defaults to the branch name with `/` replaced by `-`. 

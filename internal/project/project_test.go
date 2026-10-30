@@ -223,7 +223,7 @@ func TestCreateFromRemoteTracks(t *testing.T) {
 	}
 }
 
-func TestSafeDeleteMergedRemovesBranch(t *testing.T) {
+func TestSafeDeleteMergedKeepsBranch(t *testing.T) {
 	main := newRepo(t)
 	p := open(t, main)
 	createBranch(t, p, "done")
@@ -232,8 +232,8 @@ func TestSafeDeleteMergedRemovesBranch(t *testing.T) {
 		t.Fatalf("warning=%q err=%v", warning, err)
 	}
 	assertGone(t, p, "done")
-	if branchExists(t, main, "done") {
-		t.Error("branch kept")
+	if !branchExists(t, main, "done") {
+		t.Error("branch deleted")
 	}
 }
 
@@ -243,7 +243,7 @@ func TestSafeDeleteUnmergedKeepsBranch(t *testing.T) {
 	createBranch(t, p, "wip")
 	commit(t, filepath.Join(p.WorktreesRoot, "wip"), "wip.txt")
 	warning, err := p.Delete(find(t, p, "wip"), false)
-	if err != nil || warning == "" {
+	if err != nil || warning != "" {
 		t.Fatalf("warning=%q err=%v", warning, err)
 	}
 	assertGone(t, p, "wip")
@@ -273,8 +273,8 @@ func TestForceDeleteDirtyUnmerged(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertGone(t, p, "mess")
-	if branchExists(t, main, "mess") {
-		t.Error("branch kept")
+	if !branchExists(t, main, "mess") {
+		t.Error("branch deleted")
 	}
 }
 
@@ -300,8 +300,8 @@ func TestDeleteMissingPrunes(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertGone(t, p, "gone")
-	if branchExists(t, main, "gone") {
-		t.Error("branch kept")
+	if !branchExists(t, main, "gone") {
+		t.Error("branch deleted")
 	}
 }
 
