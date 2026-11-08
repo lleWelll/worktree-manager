@@ -29,7 +29,7 @@ Run `gwm` inside a git repository.
 | `r`     | refresh      |
 | `q`     | quit         |
 
-When creating a worktree, the Branch field shows matching local and remote-tracking branches as you type (up to five matches). Remote suggestions use locally cached refs; run `git fetch` to refresh them.
+When creating a worktree, the Branch field shows matching local and remote-tracking branches as you type (up to five at a time). Use `↑`/`↓` to highlight a suggestion and `tab` to put it into the field; a remote suggestion such as `origin/feat/x` fills in `feat/x`, and `gwm` offers to create a local branch tracking it. Without a highlighted suggestion, `tab` moves to the next field. Remote suggestions use locally cached refs; run `git fetch` to refresh them.
 
 Deleting a worktree (`d` or `D`) preserves its local branch. Force deletion (`D`) discards uncommitted changes in the worktree.
 

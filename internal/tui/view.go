@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/lleWelll/worktree-manager/internal/project"
 )
 
 const maxWidth = 100
@@ -182,15 +184,19 @@ func (m *Model) createView(width int) string {
 			} else {
 				suggestions := m.branchSuggestions()
 				const limit = 5
-				for _, branch := range suggestions[:min(len(suggestions), limit)] {
-					name, source := branch.Name, "local"
-					if branch.Remote != "" {
-						name, source = branch.Remote+"/"+name, "remote"
+				// Scroll the window so the highlighted suggestion stays visible.
+				first := max(m.suggestion-limit+1, 0)
+				last := min(first+limit, len(suggestions))
+				for i := first; i < last; i++ {
+					text := truncate(suggestionLabel(suggestions[i]), max(min(width-8, 64), 1))
+					if i == m.suggestion {
+						lines = append(lines, selectedStyle.Render("▎ "+text))
+					} else {
+						lines = append(lines, dimStyle.Render("  "+text))
 					}
-					lines = append(lines, dimStyle.Render("  "+truncate(name+" ["+source+"]", max(min(width-8, 64), 1))))
 				}
-				if len(suggestions) > limit {
-					lines = append(lines, dimStyle.Render(fmt.Sprintf("  … %d more; keep typing to narrow", len(suggestions)-limit)))
+				if rest := len(suggestions) - last; rest > 0 {
+					lines = append(lines, dimStyle.Render(fmt.Sprintf("  … %d more; keep typing to narrow", rest)))
 				}
 			}
 		}
@@ -218,6 +224,13 @@ func (m *Model) keysView() string {
 		keys = [][2]string{{"type", "search"}, {"↑↓", "move"}, {"enter", "switch"}, {"esc", "clear"}}
 	case modeCreate:
 		keys = [][2]string{{"tab", "next field"}, {"enter", "create"}, {"esc", "cancel"}}
+		if len(m.activeSuggestions()) > 0 {
+			tab := "next field"
+			if m.suggestion >= 0 {
+				tab = "use branch"
+			}
+			keys = [][2]string{{"↑↓", "pick branch"}, {"tab", tab}, {"enter", "create"}, {"esc", "cancel"}}
+		}
 	case modeConfirm:
 		keys = [][2]string{{"y", "yes"}, {"n", "no"}}
 	default:
@@ -228,6 +241,13 @@ func (m *Model) keysView() string {
 		parts = append(parts, keyStyle.Render(" "+k[0]+" ")+dimStyle.Render(" "+k[1]))
 	}
 	return " " + strings.Join(parts, "  ")
+}
+
+func suggestionLabel(branch project.Branch) string {
+	if branch.Remote != "" {
+		return branch.Remote + "/" + branch.Name + " [remote]"
+	}
+	return branch.Name + " [local]"
 }
 
 func branchLabel(r row) string {

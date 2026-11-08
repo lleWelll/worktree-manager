@@ -67,6 +67,7 @@ type Model struct {
 	branches    []project.Branch
 	branchLoad  int
 	branchError error
+	suggestion  int // index of the highlighted branch suggestion; -1 for none
 
 	mode    mode
 	filter  string
@@ -291,6 +292,7 @@ func (m *Model) handleListKey(msg tea.KeyMsg) tea.Cmd {
 		m.mode = modeCreate
 		m.inputs = [2][]rune{}
 		m.focus = fieldBranch
+		m.suggestion = -1
 		m.branches, m.branchError = nil, nil
 		m.branchLoad++
 		generation := m.branchLoad
@@ -336,12 +338,32 @@ func (m *Model) handleFilterKey(msg tea.KeyMsg) tea.Cmd {
 
 func (m *Model) handleCreateKey(msg tea.KeyMsg) tea.Cmd {
 	in := &m.inputs[m.focus]
+	suggestions := m.activeSuggestions()
 	switch msg.Type {
 	case tea.KeyEsc:
 		m.mode = modeList
 		m.clearMessage()
-	case tea.KeyTab, tea.KeyShiftTab, tea.KeyUp, tea.KeyDown:
-		m.focus = 1 - m.focus
+	case tea.KeyDown, tea.KeyCtrlN:
+		if len(suggestions) > 0 {
+			m.suggestion = min(m.suggestion+1, len(suggestions)-1)
+		} else {
+			m.switchField()
+		}
+	case tea.KeyUp, tea.KeyCtrlP:
+		if len(suggestions) > 0 {
+			m.suggestion = max(m.suggestion-1, -1)
+		} else {
+			m.switchField()
+		}
+	case tea.KeyTab:
+		if m.suggestion >= 0 && m.suggestion < len(suggestions) {
+			*in = []rune(suggestions[m.suggestion].Name)
+			m.suggestion = -1
+		} else {
+			m.switchField()
+		}
+	case tea.KeyShiftTab:
+		m.switchField()
 	case tea.KeyEnter:
 		m.busy = true
 		branch, dir := string(m.inputs[fieldBranch]), string(m.inputs[fieldDir])
@@ -353,14 +375,22 @@ func (m *Model) handleCreateKey(msg tea.KeyMsg) tea.Cmd {
 		if len(*in) > 0 {
 			*in = (*in)[:len(*in)-1]
 		}
+		m.suggestion = -1
 	case tea.KeyCtrlU:
 		*in = nil
+		m.suggestion = -1
 	case tea.KeyRunes:
 		// Pasted text arrives as runes too; keep only its first line.
 		text, _, _ := strings.Cut(string(msg.Runes), "\n")
 		*in = append(*in, []rune(text)...)
+		m.suggestion = -1
 	}
 	return nil
+}
+
+func (m *Model) switchField() {
+	m.focus = 1 - m.focus
+	m.suggestion = -1
 }
 
 func (m *Model) handleConfirmKey(msg tea.KeyMsg) tea.Cmd {
@@ -480,6 +510,14 @@ func dropLast(s string) string {
 		return s
 	}
 	return string(r[:len(r)-1])
+}
+
+// activeSuggestions returns the branch suggestions shown under the focused field, if any.
+func (m *Model) activeSuggestions() []project.Branch {
+	if m.focus != fieldBranch {
+		return nil
+	}
+	return m.branchSuggestions()
 }
 
 // branchSuggestions filters the cached refs while the user types.

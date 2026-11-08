@@ -108,6 +108,10 @@ func press(m *Model, keys ...string) {
 			msg = tea.KeyMsg{Type: tea.KeyBackspace}
 		case "down":
 			msg = tea.KeyMsg{Type: tea.KeyDown}
+		case "up":
+			msg = tea.KeyMsg{Type: tea.KeyUp}
+		case "shift+tab":
+			msg = tea.KeyMsg{Type: tea.KeyShiftTab}
 		default:
 			msg = tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(k)}
 		}
@@ -303,5 +307,74 @@ func TestDeletePromptsOnlyDescribeWorktreeRemoval(t *testing.T) {
 		if strings.Contains(m.confirm.prompt, "branch") || strings.Contains(m.confirm.prompt, "unmerged") {
 			t.Fatalf("misleading prompt: %s", m.confirm.prompt)
 		}
+	}
+}
+
+func TestPickBranchSuggestion(t *testing.T) {
+	f := newFake()
+	f.branches = []project.Branch{{Name: "feat/local"}, {Name: "feat/remote", Remote: "origin"}, {Name: "other"}}
+	m := start(t, f)
+	press(m, "n", "feat", "down", "down", "tab")
+	if m.focus != fieldBranch || string(m.inputs[fieldBranch]) != "feat/remote" {
+		t.Fatalf("focus=%d branch=%q", m.focus, string(m.inputs[fieldBranch]))
+	}
+	press(m, "enter")
+	if f.plan.Branch != "feat/remote" {
+		t.Fatalf("planned %q", f.plan.Branch)
+	}
+}
+
+func TestSuggestionNavigation(t *testing.T) {
+	f := newFake()
+	f.branches = []project.Branch{{Name: "a1"}, {Name: "a2"}}
+	m := start(t, f)
+	press(m, "n", "a", "down", "down", "down")
+	if m.suggestion != 1 {
+		t.Fatalf("down past last: suggestion=%d", m.suggestion)
+	}
+	press(m, "up", "up")
+	if m.suggestion != -1 || m.focus != fieldBranch {
+		t.Fatalf("up past first: suggestion=%d focus=%d", m.suggestion, m.focus)
+	}
+	press(m, "down", "2")
+	if m.suggestion != -1 || string(m.inputs[fieldBranch]) != "a2" {
+		t.Fatalf("typing keeps highlight: suggestion=%d branch=%q", m.suggestion, string(m.inputs[fieldBranch]))
+	}
+	press(m, "tab")
+	if m.focus != fieldDir {
+		t.Fatal("tab without highlight should switch field")
+	}
+	press(m, "shift+tab", "down", "shift+tab")
+	if m.focus != fieldDir || string(m.inputs[fieldBranch]) != "a2" {
+		t.Fatalf("shift+tab should switch field: focus=%d branch=%q", m.focus, string(m.inputs[fieldBranch]))
+	}
+}
+
+func TestArrowsSwitchFieldWithoutSuggestions(t *testing.T) {
+	m := start(t, newFake())
+	press(m, "n", "x", "down")
+	if m.focus != fieldDir {
+		t.Fatal("down without suggestions should switch field")
+	}
+}
+
+func TestSuggestionListScrolls(t *testing.T) {
+	f := newFake()
+	for _, n := range []string{"b1", "b2", "b3", "b4", "b5", "b6", "b7"} {
+		f.branches = append(f.branches, project.Branch{Name: n})
+	}
+	m := start(t, f)
+	press(m, "n", "b")
+	if strings.Contains(m.View(), "b6") {
+		t.Fatal("b6 visible before scrolling")
+	}
+	press(m, "down", "down", "down", "down", "down", "down")
+	view := m.View()
+	if !strings.Contains(view, "b6") || strings.Contains(view, "b1 [") {
+		t.Fatalf("window did not scroll:\n%s", view)
+	}
+	press(m, "tab")
+	if string(m.inputs[fieldBranch]) != "b6" {
+		t.Fatalf("branch=%q", string(m.inputs[fieldBranch]))
 	}
 }
